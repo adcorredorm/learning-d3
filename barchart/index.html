@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Barchart</title>
+    <script type="text/javascript" src="../d3/d3.min.js"></script>
+  </head>
+
+  <body onload="load(0, 10)">
+    <svg width="900" height="600"></svg>
+    <script src="barchart.js"></script>
+    <input type="number" id="n1" value="0" />
+    <input type="number" id="n2" value="10" />
+    <input type="submit" value="Submit" onclick="load(n1.value, n2.value)" />
+  </body>
+</html>
