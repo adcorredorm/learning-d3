@@ -11,24 +11,41 @@ const g = svg
   .append('g')
   .attr('transform', `translate(${width / 2}, ${height / 2})`);
 
+function mouseover(e, d) {
+  const obj = d3.select(this);
+  const textSel = obj.selectAll('text');
+  textSel.style('visibility', 'visible');
+  obj.select('polyline').style('visibility', 'visible');
+  obj.select('path').attr('stroke', 'white').attr('stroke-width', 3);
+
+  d3.select('#mainText').text(textSel.text()).style('visibility', 'visible');
+}
+
+function mouseout(e, d) {
+  const obj = d3.select(this);
+  obj.selectAll('text').style('visibility', 'hidden');
+  obj.select('polyline').style('visibility', 'hidden');
+  obj.select('path').attr('stroke', 'none').attr('stroke-width', 1);
+
+  d3.select('#mainText').text('').style('visibility', 'hidden');
+}
+
 function render(data) {
   // parameters
-  const r = (Math.min(innerHeight, innerWidth) / 2) * 0.8;
+  const r = Math.min(innerHeight, innerWidth) / 2;
   const innerR = r * 0.4;
   const outerR = r * 0.8;
-  const linesR = r * 0.95;
+  const linesR = r * 0.9;
+  const title = 'Casos por tipo';
 
   // functions
-  const totalCases = data.map((d) => +d.value).reduce((a, b) => a + b, 0);
   const getKey = (d) => d.data.key;
-  const getValue = (d) => d.data.value;
+  const getValue = (d) => parseInt(d.data.value);
   const midAngle = (d) => d.startAngle + (d.endAngle - d.startAngle) / 2;
-  const isRepresentative = (d) =>
-    getValue(d) >= (totalCases / (data.length * 100)) * totalCases * 0.8;
 
-  var arc = d3.arc().innerRadius(innerR).outerRadius(outerR);
+  const arc = d3.arc().innerRadius(innerR).outerRadius(outerR);
 
-  var outerArc = d3.arc().innerRadius(linesR).outerRadius(linesR);
+  const outerArc = d3.arc().innerRadius(linesR).outerRadius(linesR);
 
   const pie = d3
     .pie()
@@ -40,48 +57,46 @@ function render(data) {
     .domain(data.map((d) => d.key))
     .range(d3.schemeTableau10);
 
-  const slices = g
-    .append('g')
-    .attr('class', 'slices')
-    .selectAll('path.slice')
-    .data(pie(data), getKey);
+  g.append('text').attr('id', 'title').text(title).attr('y', -r);
 
-  slices
+  g.append('text')
+    .attr('id', 'mainText')
+    .style('visibility', 'hidden')
+    .attr('y', r);
+
+  const groups = g
+    .selectAll('g')
+    .data(pie(data), getKey)
     .enter()
+    .append('g')
+    .attr('class', (d) => `${getKey(d).replaceAll(' ', '')}`)
+    .on('mouseover', mouseover)
+    .on('mouseout', mouseout);
+
+  groups
     .append('path')
     .style('fill', (d) => color(getKey(d)))
-    .attr('class', 'slice')
     .attr('d', arc);
 
-  const labels = g
-    .append('g')
-    .attr('class', 'labels')
-    .selectAll('text')
-    .data(pie(data), getKey);
-
-  labels
-    .enter()
+  groups
     .append('text')
     .attr('dy', '.35em')
-    .text(getKey)
+    .text((d) =>
+      midAngle(d) < Math.PI
+        ? `(${getValue(d)}) ${getKey(d)}`
+        : `${getKey(d)} (${getValue(d)})`
+    )
     .style('text-anchor', (d) => (midAngle(d) < Math.PI ? 'start' : 'end'))
-    .style('visibility', (d) => (isRepresentative(d) ? 'visible' : 'hidden'))
+    .style('visibility', 'hidden')
     .attr('transform', (d) => {
       const pos = outerArc.centroid(d);
       pos[0] = r * (midAngle(d) < Math.PI ? 1 : -1);
       return `translate(${pos})`;
     });
 
-  const lines = g
-    .append('g')
-    .attr('class', 'lines')
-    .selectAll('polyline')
-    .data(pie(data), getKey);
-
-  lines
-    .enter()
+  groups
     .append('polyline')
-    .style('visibility', (d) => (isRepresentative(d) ? 'visible' : 'hidden'))
+    .style('visibility', 'hidden')
     .attr('points', (d) => {
       const pos = outerArc.centroid(d);
       pos[0] = r * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);
@@ -100,5 +115,5 @@ function reduce(_, values) {
 
 login()
   .then((res) => (token = res.token))
-  .then(() => map_reduce(token, map, reduce, ''))
+  .then(() => map_reduce(token, map, reduce, 'date_stamp__gte=2020-09-01'))
   .then((res) => render(res.results));
