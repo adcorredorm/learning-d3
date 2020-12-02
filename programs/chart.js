@@ -37,7 +37,6 @@ function mouseout(e, d) {
 }
 
 function render(data) {
-  //   console.log(data);
   const svg = d3.select('svg');
   svg.select('#title').remove();
 
