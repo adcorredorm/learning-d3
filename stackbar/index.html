@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>d3.js learning</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+    <label for="query_str">Query:</label>
+    <input type="text" id="query_str" />
+    <label for="init">Init Date:</label>
+    <input type="date" id="init" />
+    <label for="end">End Date:</label>
+    <input type="date" id="end" />
+    <input
+      type="button"
+      value="Send"
+      onclick="make_query(query_str.value, init.value, end.value)"
+    />
+
+    <script src="../env.js"></script>
+    <script src="functions.js"></script>
+    <script src="chart.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>

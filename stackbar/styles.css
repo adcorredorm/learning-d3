@@ -1,0 +1,39 @@
+body {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+svg {
+  font: 10px sans-serif;
+  shape-rendering: crispEdges;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+}
+
+path.domain {
+  stroke: none;
+}
+
+.y .tick line {
+  stroke: #ddd;
+}
+
+text {
+  text-shadow: -1px -1px 3px white, -1px 1px 3px white, 1px -1px 3px white,
+    1px 1px 3px white;
+  font-family: serif;
+}
+
+.title {
+  font-size: 4em;
+  text-anchor: middle;
+}
