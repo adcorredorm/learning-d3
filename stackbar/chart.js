@@ -1,29 +1,48 @@
 // Original code: http://bl.ocks.org/mstanaland/6100713
-// Setup svg using Bostock's margin convention
+
+// common values
+var margin = { top: 50, right: 80, bottom: 50, left: 30 };
+var width = document.body.clientWidth - margin.left - margin.right;
+var height = document.body.clientHeight - margin.top - margin.bottom;
+
+//functions
+
+function getColors(n) {
+  const choices = [
+    'BDBEA9',
+    '8DB38B',
+    '56876D',
+    '04724D',
+    '423629',
+    '4F5D2F',
+    'A26769',
+    '582C4D',
+    '3A3335',
+    '000000',
+  ];
+  var colors = [];
+  for (let i = 0; i < n; i++) colors.push(choices[i % choices.length]);
+  return colors;
+}
 
 function render(data) {
   const title = 'Casos por acta';
-  var programs = new Set();
+  var data_groups = new Set();
 
   data.forEach((d) => {
     d.key = d.key.replace('.0', '');
     d.value = JSON.parse(d.value.replaceAll("'", '"'));
-    programs = new Set([...Object.keys(d.value), ...programs]);
+    data_groups = new Set([...Object.keys(d.value), ...data_groups]);
   });
 
   data.forEach((d) => {
-    programs.forEach((p) => {
+    data_groups.forEach((p) => {
       d[p] = p in d.value ? d.value[p] : 0;
     });
     delete d.value;
   });
 
-  programs = [...programs];
-
-  var margin = { top: 50, right: 80, bottom: 50, left: 30 };
-
-  var width = document.body.clientWidth - margin.left - margin.right;
-  var height = document.body.clientHeight - margin.top - margin.bottom;
+  data_groups = [...data_groups];
 
   d3.select('svg').remove();
 
@@ -44,8 +63,8 @@ function render(data) {
 
   // Transpose the data into layers
   var dataset = d3.layout.stack()(
-    programs.map(function (p) {
-      return data.map(function (d) {
+    data_groups.map((p) => {
+      return data.map((d) => {
         return { x: d.key, y: d[p], program: p };
       });
     })
@@ -73,25 +92,7 @@ function render(data) {
     ])
     .range([height, 0]);
 
-  function getColors(n) {
-    const choices = [
-      'BDBEA9',
-      '8DB38B',
-      '56876D',
-      '04724D',
-      '423629',
-      '4F5D2F',
-      'A26769',
-      '582C4D',
-      '3A3335',
-      '000000',
-    ];
-    var colors = [];
-    for (let i = 0; i < n; i++) colors.push(choices[i % choices.length]);
-    return colors;
-  }
-
-  var colors = getColors(programs.length);
+  var colors = getColors(data_groups.length);
 
   // Define and draw axes
   var yAxis = d3.svg
@@ -100,7 +101,7 @@ function render(data) {
     .orient('left')
     .ticks(5)
     .tickSize(-width, 0, 0)
-    .tickFormat(function (d) {
+    .tickFormat((d) => {
       return d;
     });
 
@@ -121,7 +122,7 @@ function render(data) {
     .enter()
     .append('g')
     .attr('class', 'cost')
-    .style('fill', function (d, i) {
+    .style('fill', function (_, i) {
       return colors[i];
     });
 
@@ -172,7 +173,7 @@ function render(data) {
     .enter()
     .append('g')
     .attr('class', 'legend')
-    .attr('transform', function (d, i) {
+    .attr('transform', function (_, i) {
       return 'translate(30,' + i * 19 + ')';
     });
 
@@ -192,7 +193,7 @@ function render(data) {
     .attr('dy', '.35em')
     .style('text-anchor', 'start')
     .text(function (_, i) {
-      return programs[i];
+      return data_groups[i];
     });
 
   // Prep the tooltip bits, initial display is hidden
